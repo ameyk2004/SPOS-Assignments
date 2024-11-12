@@ -34,7 +34,7 @@ def fcf_scheduling(process_list: list[Process]):
         time+=1
 
     print(f"ID\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTAT\tPriority")
-    for proc in scheduled_list:
+    for proc in process_list:
         print(proc)
 
 def main():
