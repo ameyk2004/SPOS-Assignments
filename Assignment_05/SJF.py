@@ -1,82 +1,70 @@
 from process import Process
 from collections import deque
 
-def sjf_scheduling(process_list: list[Process]):
+process_list : list[Process] = []
+
+def sjf_schedule() -> None:
     time = 0
+    no_processes = len(process_list)
+    no_executed = 0
+    current_process: Process = None
     ready_list = deque()
-    scheduled_list = []
-    no_of_processes = len(process_list)
-    completed_processes = 0
-    curr_proc :Process= None
+    scheduled_list : list[Process] = []
 
-    while no_of_processes != completed_processes:
-
-        for i in range(len(process_list)):
-            if time == process_list[i].at:
-                ready_list.append(process_list[i])
-                print(f"At time {time} Process {process_list[i].id} is ready")
-
-            
-
-        if (curr_proc is not None) and curr_proc.remaining_burst_time == 0:
-            print(f"At time {time} Process {curr_proc.id} completed")
-            curr_proc.ct = time
-            curr_proc.tat = curr_proc.ct - curr_proc.at
-            curr_proc.wt = curr_proc.tat - curr_proc.bt
-            scheduled_list.append(curr_proc)
-            ready_list.remove(curr_proc)
-            curr_proc = None
-            completed_processes+=1
-
-        if curr_proc is not None and len(ready_list) > 0:
-            min_bt_process = min(ready_list, key=lambda proc: proc.remaining_burst_time)
-            if min_bt_process.remaining_burst_time < curr_proc.remaining_burst_time:
+    while no_executed != no_processes:
+        for process in process_list:
+            if process.at == time:
+                ready_list.append(process)
+        
+        if current_process is not None and current_process.remaining_bt == 0:
+            current_process.ct = time
+            current_process.tat = current_process.ct - current_process.at
+            current_process.wt = current_process.tat - current_process.bt
+            scheduled_list.append(current_process)
+            no_executed += 1
+            current_process = None
+        
+        if current_process is not None and len(ready_list) > 0:
+            min_bt_process = min(ready_list, key=lambda proc: proc.remaining_bt)
+            if min_bt_process.remaining_bt < current_process.remaining_bt:
                 ready_list.remove(min_bt_process)
-                ready_list.append(curr_proc)
-                curr_proc = min_bt_process
+                ready_list.append(current_process)
+                current_process = min_bt_process
 
-        if curr_proc is None and len(ready_list) > 0:
-            curr_proc = min(ready_list, key=lambda proc: proc.bt)
-            print(f"At time {time} Process {curr_proc.id} given attention")
+        if current_process is None and len(ready_list) > 0:
+            current_process = min(ready_list, key=lambda proc : proc.remaining_bt)
+            ready_list.remove(current_process)
 
-        if curr_proc is not None:
-            curr_proc.remaining_burst_time = curr_proc.remaining_burst_time - 1
+        if current_process is not None:
+            current_process.remaining_bt -= 1
 
-        time+=1
+        time += 1
 
-    print(f"ID\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTAT\tPriority")
-    for proc in scheduled_list:
-        print(proc)
+
+    avg_wt = sum([proc.wt for proc in scheduled_list])/no_processes
+    avg_tat = sum([proc.tat for proc in scheduled_list])/no_processes
+    print(f"Avg WT : {avg_wt}")
+    print(f"Avg TAT : {avg_tat}")
+
+    print("ID\tArrival Time\tBurst Time\tCompletion Time\tWaiting Time\tTAT\tPriority")
+    for process in scheduled_list:
+        print(process)
+
 
 def main():
-    # arrival_times = list(map(int, input("Enter arrival times : ").split(" ")))
-    # burst_times = list(map(int, input("Enter burst times : ").split(" ")))
+    arrival_times = list(map(int, str(input("Enter Arrival Times >>> ")).split()))
+    burst_times = list(map(int, str(input("Enter Arrival Times >>> ")).split()))
 
-    arrival_times = [6, 2, 8, 3, 4]
-    burst_times = [2, 5, 1, 0, 4] 
+    if len(arrival_times) != len(burst_times):
+        print("Incomplete Info about processes")
+        exit(1)
+    
+    for i in range(0, len(arrival_times)):
+        process = Process(i+1, arrival_times[i], burst_times[i])
+        process_list.append(process)
+    
+    process_list.sort(key=lambda proc: proc.at)
+    sjf_schedule()
 
-    process_list = []
-
-    for i in range(len(arrival_times)):
-        newProcess = Process()
-        newProcess.id = i+1
-        newProcess.at = arrival_times[i]
-        newProcess.bt = burst_times[i]
-
-        newProcess.remaining_burst_time = burst_times[i]
-        
-
-        process_list.append(newProcess)
-
-    process_list.sort(key= lambda proc: proc.at)
-
-
-    print(arrival_times)
-    print(burst_times)
-
-    for proc in process_list:
-        print(proc)
-
-    sjf_scheduling(process_list)
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
